@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', { packages: ["sankey"] });
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        // 👤 People and their paths
+        const people = [
+          { name: "Kelly", path: ["Matches", "She writes first", "1st date planned", "1st date attended", "2nd date planned", "2nd date attended", "Action seen", "Fizzled"] },
+          { name: "Amy", path: ["Matches", "Ben writes first", "1st date planned", "1st date attended", "2nd date planned", "2nd date attended", "Ben ghosted"] },
+          { name: "Sindy", path: ["Matches", "Ben writes first", "1st date planned", "1st date attended", "Fizzled"] }
+        ];
+
+        // Define final states and colors
+        const finalStates = ["Ben ghosted", "Fizzled", "Relationship!"];
+        const stateColors = {
+          "Ben ghosted": "red",
+          "Fizzled": "gray",
+          "Relationship!": "green",
+          "Ongoing": "blue"
+        };
+
+        let flows = [];
+        let colors = [];
+
+        people.forEach(person => {
+          let stages = person.path.slice();
+          let lastStage = stages.pop();
+
+          // Work through path up to the second-to-last stage
+          for (let i = 0; i < stages.length - 1; i++) {
+            flows.push([stages[i], stages[i+1], 1]);
+            colors.push("#ccc"); // neutral for shared steps
+          }
+
+          // Build personalized end state
+          let endLabel;
+          if (!finalStates.includes(lastStage)) {
+            endLabel = lastStage + " (Ongoing)";
+            colors.push(stateColors["Ongoing"]);
+          } else {
+            endLabel = lastStage + " (" + person.name + ")";
+            colors.push(stateColors[lastStage]);
+          }
+
+          // Add last connection
+          flows.push([stages[stages.length-1], endLabel, 1]);
+        });
+
+        // Build DataTable
+        var data = new google.visualization.DataTable();
+        data.addColumn("string", "From");
+        data.addColumn("string", "To");
+        data.addColumn("number", "Count");
+        data.addRows(flows);
+
+        var options = {
+          width: 1000,
+          height: 600,
+          sankey: {
+            node: { label: { fontSize: 14 } },
+            link: { colorMode: 'source', colors: colors }
+          }
+        };
+
+        var chart = new google.visualization.Sankey(document.getElementById("sankey_chart"));
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <h2>Ben’s Dating Flow Tracker 💘</h2>
+    <div id="sankey_chart" style="width: 100%; height: 600px;"></div>
+  </body>
+</html>
